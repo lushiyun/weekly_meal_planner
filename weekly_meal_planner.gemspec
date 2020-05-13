@@ -26,4 +26,10 @@ Gem::Specification.new do |spec|
   spec.bindir        = "exe"
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
+
+  # spec.add_development_dependency 'solargraph'
+  # spec.add_development_dependency 'pry'
+
+  # spec.add_runtime_dependency 'nokogiri'
+  # spec.add_development_dependency 'nokogiri'
 end
