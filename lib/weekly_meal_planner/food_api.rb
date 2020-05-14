@@ -1,8 +1,3 @@
-require 'open-uri'
-require 'net/http'
-require 'json'
-require 'pry'
-
 class WeeklyMealPlanner::FoodAPI
   AUTH_KEY = "b1c4405a65e94d16a5faf6f9dc9ca1a4"
 

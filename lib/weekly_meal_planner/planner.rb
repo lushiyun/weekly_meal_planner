@@ -1,0 +1,3 @@
+class WeeklyMealPlanner::Planner
+
+end
