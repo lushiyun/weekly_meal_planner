@@ -21,8 +21,6 @@ class WeeklyMealPlanner::FoodAPI
   def self.get_recipe_instruction(id)
     url = "https://api.spoonacular.com/recipes/#{id}/analyzedInstructions?apiKey=#{AUTH_KEY}"
 
-    binding.pry
-
     if get_JSON(url)[0]
       get_JSON(url)[0]["steps"].map do |step_hash|
         step_hash.values_at("step")
@@ -39,8 +37,8 @@ class WeeklyMealPlanner::FoodAPI
       end 
     end
 
-    if get_JSON(url)["servings"]
-      ingredient_list get_JSON(url)["servings"]
+    # if get_JSON(url)["servings"]
+    #   ingredient_list get_JSON(url)["servings"]
 
 
   end

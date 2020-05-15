@@ -19,6 +19,7 @@ class WeeklyMealPlanner::Recipe
   end
 
   def add_ingredients(ingredients)
+    ingredients.map { |ingredient_hash| ingredient_hash[:amount].to_r }
     @ingredients = ingredients
   end 
 

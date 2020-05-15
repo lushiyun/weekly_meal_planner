@@ -9,7 +9,8 @@ class WeeklyMealPlanner::CLI
     get_intolerance_search
     get_query_search
 
-    list_recipes
+    get_recipes_list
+    display_recipes_list
     select_recipe
     
   end 
@@ -85,21 +86,20 @@ class WeeklyMealPlanner::CLI
   end
 
   #RECIPE CONTROLLER
-  def list_recipes
+  def get_recipes_list
     puts "\nHere's your curated recipes."
-
     basic_recipes_arr = WeeklyMealPlanner::FoodAPI.get_recipes_list(search_hash)
     WeeklyMealPlanner::Recipe.create_from_collection(basic_recipes_arr)
+  end 
 
+  def display_recipes_list
     WeeklyMealPlanner::Recipe.all.each.with_index(1) do |recipe_obj, i|
       puts "#{i}. #{recipe_obj.title}"
     end 
   end
 
   def select_recipe 
-    puts "\nSelect a recipe to read more;
-          \nEnter 'new' to get new recipes for #{query_search_arr.join(" ")}; or
-          \nEnter 'search' to search for other recipes."
+    puts "\nSelect a recipe to read more;\nEnter 'new' to get new recipes for #{query_search_arr.join(" ")}; or\nEnter 'search' to search for other recipes."
     recipe_input = gets.strip.downcase
 
     while !selection_validation(recipe_input) do
@@ -108,11 +108,13 @@ class WeeklyMealPlanner::CLI
     end
 
     if recipe_input == "new"
-      list_recipes
+      get_recipes_list
+      display_recipes_list
       select_recipe
     elsif recipe_input == "search"
       get_query_search
-      list_recipes
+      get_recipes_list
+      display_recipes_list
       select_recipe
     else 
       get_recipe(recipe_input)
@@ -143,10 +145,26 @@ class WeeklyMealPlanner::CLI
     recipe.ingredients.each do |ingredient_hash|
       puts "#{ingredient_hash['amount']} #{ingredient_hash['unit']} #{ingredient_hash['name']}"
     end 
+    planner_selection(recipe)
   end 
 
-  #SHOPPING LIST CONTROLLER
-  def add_ingredients
+  #PLANNER CONTROLLER
+  def planner_selection(recipe)
+    puts "\nWould you like to add ingredients to your planner? (y/n)"
+    planner_input = gets.strip.downcase
+    while !planner_input_validation(planner_input) do
+      puts "Invalid input. Let's try again."
+      planner_selection(recipe)
+    end
+ 
+    WeeklyMealPlanner::Planner.create_from_collection(recipe.ingredients) if planner_input == "y"
+
+    display_recipes_list
+    select_recipe
+  end 
+
+  def planner_input_validation(input)
+    input == "y" || input == "n"
   end 
 
 end
