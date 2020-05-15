@@ -10,8 +10,7 @@ class WeeklyMealPlanner::CLI
     get_query_search
 
     list_recipes
-
-    recipe_selection
+    select_recipe
     
   end 
 
@@ -29,14 +28,7 @@ class WeeklyMealPlanner::CLI
       get_diet_search
     end
 
-    @diet_search_arr = diet_input_arr.map do |input|
-      if input.downcase == "n"
-        ""
-      else 
-        index = input.to_i - 1
-        diet_results[index]
-      end 
-    end
+    @diet_search_arr = select_search_word(diet_input_arr, diet_results)
   end
   
   def get_intolerance_search
@@ -51,19 +43,12 @@ class WeeklyMealPlanner::CLI
       get_intolerance_search
     end
 
-    @intolerance_search_arr = intolerance_input_arr.map do |input|
-      if input.downcase == "n"
-        ""
-      else 
-        index = input.to_i - 1
-        intolerance_results[index]
-      end 
-    end
+    @intolerance_search_arr = select_search_word(intolerance_input_arr, intolerance_results)
   end
 
-  def list_results(html_elms)
-    html_elms.each.with_index(1) do |elm, index|
-      puts "#{index}. #{elm}"
+  def list_results(html_els)
+    html_els.each.with_index(1) do |el, index|
+      puts "#{index}. #{el}"
     end
   end
 
@@ -73,8 +58,14 @@ class WeeklyMealPlanner::CLI
     end   
   end
 
+  def select_search_word(input_arr, data)
+    input_arr.map do |input|
+      input.downcase == "n" ? "" : data[input.to_i - 1]
+    end 
+  end
+
   def get_query_search
-    puts "\nWhat are you in the mood for? Please give me a keyword (e.g, 'soup', 'salmon')."
+    puts "\nWhat are you in the mood for? Please give me a keyword (e.g, 'soup', 'chicken', 'lunch')."
 
     query_input = gets.strip
     while !(/[a-z\s]+/ =~ query_input) do 
@@ -96,13 +87,16 @@ class WeeklyMealPlanner::CLI
   #RECIPE CONTROLLER
   def list_recipes
     puts "\nHere's your curated recipes."
-    recipes = WeeklyMealPlanner::FoodAPI.get_recipes(search_hash)
-    recipes.each.with_index(1) do |recipe, index|
-      puts "#{index}. #{recipe['title']}"
-    end
+
+    basic_recipes_arr = WeeklyMealPlanner::FoodAPI.get_recipes_list(search_hash)
+    WeeklyMealPlanner::Recipe.create_from_collection(basic_recipes_arr)
+
+    WeeklyMealPlanner::Recipe.all.each.with_index(1) do |recipe_obj, i|
+      puts "#{i}. #{recipe_obj.title}"
+    end 
   end
 
-  def recipe_selection 
+  def select_recipe 
     puts "\nSelect a recipe to read more;
           \nEnter 'new' to get new recipes for #{query_search_arr.join(" ")}; or
           \nEnter 'search' to search for other recipes."
@@ -110,18 +104,18 @@ class WeeklyMealPlanner::CLI
 
     while !selection_validation(recipe_input) do
       puts "Invalid input. Let's try again."
-      recipe_selection
+      select_recipe
     end
 
     if recipe_input == "new"
       list_recipes
-      recipe_selection
+      select_recipe
     elsif recipe_input == "search"
       get_query_search
       list_recipes
-      recipe_selection
+      select_recipe
     else 
-      get_recipe(input)
+      get_recipe(recipe_input)
     end 
   end
 
@@ -130,7 +124,29 @@ class WeeklyMealPlanner::CLI
   end
 
   def get_recipe(input)
-    
+    index = input.to_i - 1
+    selected_recipe = WeeklyMealPlanner::Recipe.all[index]
+
+    recipe_instruction = WeeklyMealPlanner::FoodAPI.get_recipe_instruction(selected_recipe.id).flatten
+    selected_recipe.add_instruction(recipe_instruction)
+
+    recipe_ingredients = WeeklyMealPlanner::FoodAPI.get_recipe_ingredients(selected_recipe.id)
+    selected_recipe.add_ingredients(recipe_ingredients)
+
+    display_recipe(selected_recipe)
+  end 
+
+  def display_recipe(recipe)
+    puts "\nSteps:"
+    recipe.instruction.each { |step| puts "#{step}" }
+    puts "\nIngredients:"
+    recipe.ingredients.each do |ingredient_hash|
+      puts "#{ingredient_hash['amount']} #{ingredient_hash['unit']} #{ingredient_hash['name']}"
+    end 
+  end 
+
+  #SHOPPING LIST CONTROLLER
+  def add_ingredients
   end 
 
 end
