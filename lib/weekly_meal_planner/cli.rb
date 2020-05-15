@@ -1,26 +1,21 @@
 class WeeklyMealPlanner::CLI
-  attr_accessor :diet_search_arr, :intolerance_search_arr, :query_search_arr
+  attr_accessor :diet_search_arr, :intolerance_search_arr, :query_search_arr, :search_hash
 
+  #MAIN CONTROLLER
   def run
     puts "\nWelcome to the Weekly Meal Planner app!"
-    puts "I will help you plan your meals for the upcoming week and generate your shopping list."
-
+  
     get_diet_search
-    
     get_intolerance_search
-
-    
-
     get_query_search
 
     list_recipes
 
-    puts "\nSelect a recipe to read more."
-
+    recipe_selection
     
-
   end 
 
+  #SEARCH CONTROLLER
   def get_diet_search
     diet_results = WeeklyMealPlanner::FoodScraper.diets
 
@@ -79,7 +74,7 @@ class WeeklyMealPlanner::CLI
   end
 
   def get_query_search
-    puts "\nWhat are you in the mood for? Please give me a keyword (e.g, 'burger'). Press enter to confirm."
+    puts "\nWhat are you in the mood for? Please give me a keyword (e.g, 'soup', 'salmon')."
 
     query_input = gets.strip
     while !(/[a-z\s]+/ =~ query_input) do 
@@ -90,17 +85,52 @@ class WeeklyMealPlanner::CLI
     @query_search_arr = query_input.split(" ")
   end 
 
-  def list_recipes
-    puts "\nHere's a list of 10 randomly curated recipes."
-    search_hash = {
+  def search_hash
+    @search_hash = {
       diets: diet_search_arr,
       intolerances: intolerance_search_arr,
       queries: query_search_arr
     }
-    recipes = WeeklyMealPlanner::FoodAPI.get_recipes(search_hash)["results"]
+  end
+
+  #RECIPE CONTROLLER
+  def list_recipes
+    puts "\nHere's your curated recipes."
+    recipes = WeeklyMealPlanner::FoodAPI.get_recipes(search_hash)
     recipes.each.with_index(1) do |recipe, index|
       puts "#{index}. #{recipe['title']}"
     end
+  end
+
+  def recipe_selection 
+    puts "\nSelect a recipe to read more;
+          \nEnter 'new' to get new recipes for #{query_search_arr.join(" ")}; or
+          \nEnter 'search' to search for other recipes."
+    recipe_input = gets.strip.downcase
+
+    while !selection_validation(recipe_input) do
+      puts "Invalid input. Let's try again."
+      recipe_selection
+    end
+
+    if recipe_input == "new"
+      list_recipes
+      recipe_selection
+    elsif recipe_input == "search"
+      get_query_search
+      list_recipes
+      recipe_selection
+    else 
+      get_recipe(input)
+    end 
+  end
+
+  def selection_validation(input)
+    (1..10).include?(input.to_i) || input == "new" || input == "search"
+  end
+
+  def get_recipe(input)
+    
   end 
 
 end

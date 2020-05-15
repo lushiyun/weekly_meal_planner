@@ -1,10 +1,7 @@
 # class WeeklyMealPlanner::Search
 
-#   @@params_hash = {}
-
-#     @@params_hash[:diets] = diets_arr
-#     @@params_hash[:intolerances] = intolerances_arr
-#     @@params_hash[:query] = query_input.split(" ")
+#   def self.make_search_hash
+#     diet_results = WeeklyMealPlanner::FoodScraper.diets
 #   end 
 
 # end 
