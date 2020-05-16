@@ -13,4 +13,8 @@ class WeeklyMealPlanner::Planner
     end
   end
 
+  def self.all
+    @@all
+  end
+
 end

@@ -1,6 +1,6 @@
 class WeeklyMealPlanner::Recipe
   attr_accessor :id, :title
-  attr_reader :instruction, :ingredients
+  attr_reader :instruction, :ingredients, :servings
   @@all = []
 
   def initialize(recipe_hash)
@@ -19,12 +19,19 @@ class WeeklyMealPlanner::Recipe
   end
 
   def add_ingredients(ingredients)
-    ingredients.map { |ingredient_hash| ingredient_hash[:amount].to_r }
     @ingredients = ingredients
+  end
+
+  def add_servings(servings)
+    @servings = servings
   end 
 
   def self.all
     @@all
   end
+
+  def self.reset
+    @@all.clear
+  end 
 
 end 

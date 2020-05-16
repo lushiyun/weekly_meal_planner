@@ -32,17 +32,18 @@ class WeeklyMealPlanner::FoodAPI
     url = "https://api.spoonacular.com/recipes/#{id}/information?includeNutrition=false&apiKey=#{AUTH_KEY}"
 
     if get_JSON(url)["extendedIngredients"]
-     ingredient_list = get_JSON(url)["extendedIngredients"].map do |ingredient_hash|
+     get_JSON(url)["extendedIngredients"].map do |ingredient_hash|
         ingredient_hash.select { |k, v| k == "name" || k == "amount" || k == "unit"}
       end 
     end
-
-    # if get_JSON(url)["servings"]
-    #   ingredient_list get_JSON(url)["servings"]
-
-
   end
-  
+
+  def self.get_servings(id)
+    url = "https://api.spoonacular.com/recipes/#{id}/information?includeNutrition=false&apiKey=#{AUTH_KEY}"
+
+    get_JSON(url)["servings"]
+  end 
+
   def self.get_JSON(url)
     uri = URI.parse(url)
     response = Net::HTTP.get_response(uri)
