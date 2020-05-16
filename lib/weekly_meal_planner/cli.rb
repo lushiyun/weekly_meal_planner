@@ -12,7 +12,6 @@ class WeeklyMealPlanner::CLI
     get_recipes_list
     display_recipes_list
     select_recipe
-    
   end 
 
   #SEARCH CONTROLLER
@@ -188,7 +187,8 @@ class WeeklyMealPlanner::CLI
     if display_planner_input == "y"
       WeeklyMealPlanner::Planner.all.each do |ingredient_obj|
         puts "#{ingredient_obj.amount} #{ingredient_obj.unit} #{ingredient_obj.name}"
-      end 
+      end
+      get_more_input
     else 
       display_recipes_list
       select_recipe
@@ -198,5 +198,25 @@ class WeeklyMealPlanner::CLI
   def planner_input_validation(input)
     input == "y" || input == "n"
   end 
+
+  def get_more_input
+    puts "\nEnter 'more' to add more ingredients or 'exit' to quit."
+    planner_more_input = gets.strip.downcase
+    unless more_input_validation(planner_more_input)
+      puts "\nInvalid input. Let's stry again."
+      get_more_input
+    end 
+
+    if planner_more_input == "more"
+      display_recipes_list
+      select_recipe
+    else 
+      puts "\nGoodbye!"
+    end  
+  end
+
+  def more_input_validation(input)
+    input == "more" || input == "exit"
+  end
 
 end
