@@ -95,7 +95,7 @@ class WeeklyMealPlanner::CLI
 
   def display_recipes_list
     if WeeklyMealPlanner::Recipe.all.empty?
-      puts "No recipes found for your search."
+      empty_return
     else
       WeeklyMealPlanner::Recipe.all.each.with_index(1) do |recipe_obj, i|
         puts "#{i}. #{recipe_obj.title}"
@@ -103,9 +103,12 @@ class WeeklyMealPlanner::CLI
     end 
   end
 
+  def empty_return
+    puts "No information found."
+  end 
+
   #Make a combined method to be used when user chooses new search or new list
   def make_new_recipes_list
-    #Clear Recipe.all
     WeeklyMealPlanner::Recipe.reset
     get_recipes_list
     display_recipes_list
@@ -144,10 +147,14 @@ class WeeklyMealPlanner::CLI
 
   def add_recipe_details(recipe)
     recipe_instruction = WeeklyMealPlanner::FoodAPI.get_recipe_instruction(recipe.id)
-    recipe_instruction ? recipe.add_instruction(recipe_instruction.flatten) : (puts "No instructions found for #{recipe.title}")
+    if recipe_instruction
+      recipe.add_instruction(recipe_instruction.flatten)
+    end
 
     recipe_ingredients = WeeklyMealPlanner::FoodAPI.get_recipe_ingredients(recipe.id)
-    recipe_ingredients ? recipe.add_ingredients(recipe_ingredients) : (puts "No ingredients found for #{recipe.title}")
+    if recipe_ingredients
+      recipe.add_ingredients(recipe_ingredients)
+    end 
 
     recipe_servings = WeeklyMealPlanner::FoodAPI.get_servings(recipe.id)
     recipe.add_servings(recipe_servings)
@@ -168,7 +175,7 @@ class WeeklyMealPlanner::CLI
     planner_selection(recipe)
   end
 
-  #11.0 -> 11; 0.25 -> 1/4; 1.47472 -> 3/2
+  #11.0 -> 11; 0.25 -> 1/4; 1.47472 -> 1 1/2
   def parse_ingredient_amount(amount)
     amount_arr = amount.to_s.split(".")
     if amount_arr[1] == "0"
@@ -263,5 +270,4 @@ class WeeklyMealPlanner::CLI
   def more_input_validation(input)
     input == "more" || input == "exit"
   end
-
 end

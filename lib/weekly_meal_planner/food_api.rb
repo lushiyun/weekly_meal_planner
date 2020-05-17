@@ -5,8 +5,6 @@ class WeeklyMealPlanner::FoodAPI
     parsed_params = parse_search(search)
     url = "https://api.spoonacular.com/recipes/search?offset=#{parsed_params[:offset]}&number=#{parsed_params[:number]}&query=#{parsed_params[:queries]}&diet=#{parsed_params[:diets]}&intolerances=#{parsed_params[:intolerances]}&instructionsRequired=true&apiKey=#{AUTH_KEY}"
 
-    binding.pry
-
     get_JSON(url)["results"].map do |recipe_hash|
       recipe_hash.select { |k, v| k == "id" || k == "title" }
     end 
