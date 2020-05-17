@@ -3,8 +3,9 @@ class WeeklyMealPlanner::FoodAPI
 
   def self.get_recipes_list(search)
     parsed_params = parse_search(search)
-
     url = "https://api.spoonacular.com/recipes/search?offset=#{parsed_params[:offset]}&number=#{parsed_params[:number]}&query=#{parsed_params[:queries]}&diet=#{parsed_params[:diets]}&intolerances=#{parsed_params[:intolerances]}&instructionsRequired=true&apiKey=#{AUTH_KEY}"
+
+    binding.pry
 
     get_JSON(url)["results"].map do |recipe_hash|
       recipe_hash.select { |k, v| k == "id" || k == "title" }
@@ -12,7 +13,7 @@ class WeeklyMealPlanner::FoodAPI
   end
 
   def self.parse_search(search_hash)
-    search_hash.transform_values! { |input_arr| input_arr.join("&").downcase.gsub(" ", "") }
+    search_hash.transform_values! { |input_arr| input_arr.join("&").downcase.gsub(" ", "&") }
     search_hash[:number] = "10"
     search_hash[:offset] = rand(200).to_s
     search_hash

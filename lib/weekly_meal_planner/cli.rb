@@ -1,7 +1,7 @@
 class WeeklyMealPlanner::CLI
   attr_accessor :diet_search_arr, :intolerance_search_arr, :query_search_arr, :search_hash
 
-  #MAIN CONTROLLER
+  ####MAIN CONTROLLER###
   def run
     puts "\nWelcome to the Weekly Meal Planner app!"
   
@@ -14,7 +14,7 @@ class WeeklyMealPlanner::CLI
     select_recipe
   end 
 
-  #SEARCH CONTROLLER
+  ####SEARCH CONTROLLER###
   def get_diet_search
     diet_results = WeeklyMealPlanner::FoodScraper.diets
 
@@ -64,10 +64,11 @@ class WeeklyMealPlanner::CLI
     end 
   end
 
+  #Get keyword from user for API search query; no scraping needed
   def get_query_search
     puts "\nWhat are you in the mood for? Please give me a keyword (e.g, 'soup', 'chicken', 'lunch')."
 
-    query_input = gets.strip
+    query_input = gets.strip.downcase
     unless (/[a-z\s]+/ =~ query_input)
       puts "Invalid input. Let's try again."
       get_query_search
@@ -84,20 +85,27 @@ class WeeklyMealPlanner::CLI
     }
   end
 
-  #RECIPE CONTROLLER
+  #####RECIPE CONTROLLER####
   def get_recipes_list
     puts "\nHere's your curated recipes."
+    #Get a list of 10 randomly selected recipes based on diets, intolerances and keywords; only pull recipe ID and title from API
     basic_recipes_arr = WeeklyMealPlanner::FoodAPI.get_recipes_list(search_hash)
     WeeklyMealPlanner::Recipe.create_from_collection(basic_recipes_arr)
   end 
 
   def display_recipes_list
-    WeeklyMealPlanner::Recipe.all.each.with_index(1) do |recipe_obj, i|
-      puts "#{i}. #{recipe_obj.title}"
+    if WeeklyMealPlanner::Recipe.all.empty?
+      puts "No recipes found for your search."
+    else
+      WeeklyMealPlanner::Recipe.all.each.with_index(1) do |recipe_obj, i|
+        puts "#{i}. #{recipe_obj.title}"
+      end 
     end 
   end
 
+  #Make a combined method to be used when user chooses new search or new list
   def make_new_recipes_list
+    #Clear Recipe.all
     WeeklyMealPlanner::Recipe.reset
     get_recipes_list
     display_recipes_list
@@ -125,7 +133,7 @@ class WeeklyMealPlanner::CLI
   end
 
   def selection_validation(input)
-    (1..10).include?(input.to_i) || input == "new" || input == "search"
+    (1..WeeklyMealPlanner::Recipe.all.length).include?(input.to_i) || input == "new" || input == "search"
   end
 
   def get_recipe(input)
@@ -135,11 +143,11 @@ class WeeklyMealPlanner::CLI
   end 
 
   def add_recipe_details(recipe)
-    recipe_instruction = WeeklyMealPlanner::FoodAPI.get_recipe_instruction(recipe.id).flatten
-    recipe.add_instruction(recipe_instruction)
+    recipe_instruction = WeeklyMealPlanner::FoodAPI.get_recipe_instruction(recipe.id)
+    recipe_instruction ? recipe.add_instruction(recipe_instruction.flatten) : (puts "No instructions found for #{recipe.title}")
 
     recipe_ingredients = WeeklyMealPlanner::FoodAPI.get_recipe_ingredients(recipe.id)
-    recipe.add_ingredients(recipe_ingredients)
+    recipe_ingredients ? recipe.add_ingredients(recipe_ingredients) : (puts "No ingredients found for #{recipe.title}")
 
     recipe_servings = WeeklyMealPlanner::FoodAPI.get_servings(recipe.id)
     recipe.add_servings(recipe_servings)
@@ -152,12 +160,32 @@ class WeeklyMealPlanner::CLI
     recipe.instruction.each { |step| puts "#{step}" }
     puts "\nIngredients:"
     recipe.ingredients.each do |ingredient_hash|
-      puts "#{ingredient_hash['amount']} #{ingredient_hash['unit']} #{ingredient_hash['name']}"
-    end 
+      parsed_amount = parse_ingredient_amount(ingredient_hash["amount"])
+      puts "#{parsed_amount} #{ingredient_hash['unit']} #{ingredient_hash['name']}"
+    end
+    puts "\nServings: #{recipe.servings}"
+    
     planner_selection(recipe)
-  end 
+  end
 
-  #PLANNER CONTROLLER
+  #11.0 -> 11; 0.25 -> 1/4; 1.47472 -> 3/2
+  def parse_ingredient_amount(amount)
+    amount_arr = amount.to_s.split(".")
+    if amount_arr[1] == "0"
+      amount_arr[0]
+    else
+      amount = amount.to_r.rationalize(0.05)
+      amount_as_integer = amount.to_i
+      if (amount_as_integer != amount.to_f) && (amount_as_integer > 0)
+        fraction = amount - amount_as_integer
+        "#{amount_as_integer} #{fraction}"
+      else
+        amount.to_s
+      end
+    end
+  end
+
+  ####PLANNER CONTROLLER####
   def planner_selection(recipe)
     puts "\nWould you like to add ingredients to your planner? (y/n)"
     planner_input = gets.strip.downcase
@@ -167,13 +195,29 @@ class WeeklyMealPlanner::CLI
     end
 
     if planner_input == "y"
-      WeeklyMealPlanner::Planner.create_from_collection(recipe.ingredients)
-      puts "\nIngredients added to your planner."
+      update_servings(recipe)
       display_planner
     else 
       display_recipes_list
       select_recipe
     end
+  end 
+
+  def update_servings(recipe)
+    puts "\nHow many servings of #{recipe.title} would you like to make?"
+    servings_input = gets.strip.to_i
+    unless servings_input > 0
+      puts "Invalid input. Let's try again."
+      update_servings(recipe)
+    end 
+    
+    updated_ingredients = recipe.ingredients.map do |ingredient_hash|
+      ingredient_hash["amount"] *= (servings_input / recipe.servings).to_f
+      ingredient_hash
+    end
+
+    WeeklyMealPlanner::Planner.create_from_collection(updated_ingredients)
+    puts "\nIngredients for #{servings_input} servings of #{recipe.title} added to your planner."
   end 
 
   def display_planner
@@ -186,7 +230,8 @@ class WeeklyMealPlanner::CLI
 
     if display_planner_input == "y"
       WeeklyMealPlanner::Planner.all.each do |ingredient_obj|
-        puts "#{ingredient_obj.amount} #{ingredient_obj.unit} #{ingredient_obj.name}"
+        parsed_amount = parse_ingredient_amount(ingredient_obj.amount)
+        puts "#{parsed_amount} #{ingredient_obj.unit} #{ingredient_obj.name}"
       end
       get_more_input
     else 
