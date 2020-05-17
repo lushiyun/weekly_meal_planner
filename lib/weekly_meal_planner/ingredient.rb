@@ -1,4 +1,4 @@
-class WeeklyMealPlanner::Planner
+class WeeklyMealPlanner::Ingredient
   attr_accessor :name, :amount, :unit
   @@all = []
 

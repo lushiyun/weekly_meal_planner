@@ -223,7 +223,7 @@ class WeeklyMealPlanner::CLI
       ingredient_hash
     end
 
-    WeeklyMealPlanner::Planner.create_from_collection(updated_ingredients)
+    WeeklyMealPlanner::Ingredient.create_from_collection(updated_ingredients)
     puts "\nIngredients for #{servings_input} servings of #{recipe.title} added to your planner."
   end 
 
@@ -236,7 +236,7 @@ class WeeklyMealPlanner::CLI
     end
 
     if display_planner_input == "y"
-      WeeklyMealPlanner::Planner.all.each do |ingredient_obj|
+      WeeklyMealPlanner::Ingredient.all.each do |ingredient_obj|
         parsed_amount = parse_ingredient_amount(ingredient_obj.amount)
         puts "#{parsed_amount} #{ingredient_obj.unit} #{ingredient_obj.name}"
       end
