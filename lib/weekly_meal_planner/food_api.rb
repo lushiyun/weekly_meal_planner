@@ -1,5 +1,5 @@
 class WeeklyMealPlanner::FoodAPI
-  AUTH_KEY = "b1c4405a65e94d16a5faf6f9dc9ca1a4"
+  AUTH_KEY = "238c827fc2e64f56b82d3e91ed834762"
 
   def self.get_recipes_list(search)
     parsed_params = parse_search(search)

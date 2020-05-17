@@ -219,7 +219,7 @@ class WeeklyMealPlanner::CLI
     end 
     
     updated_ingredients = recipe.ingredients.map do |ingredient_hash|
-      ingredient_hash["amount"] *= (servings_input / recipe.servings).to_f
+      ingredient_hash["amount"] *= (servings_input.to_f / recipe.servings.to_f)
       ingredient_hash
     end
 
