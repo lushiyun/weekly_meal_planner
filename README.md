@@ -1,8 +1,6 @@
-# WeeklyMealPlanner
+# Weekly Meal Planner
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/weekly_meal_planner`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+This ruby gem provides a CLI application that allows the user to search for recipes based on diets, intolerances, and query keywords. The user can also view recipe details and save ingredients for desired number of servings in the planner. User can save ingredients for multiple recipes.
 
 ## Installation
 
@@ -22,7 +20,11 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Type the below and follow the on screen prompts.
+
+```ruby
+bin/weekly_meal_planner
+```
 
 ## Development
 
